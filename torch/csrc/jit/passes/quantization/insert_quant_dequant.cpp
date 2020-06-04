@@ -362,6 +362,34 @@ void checkCalculateQParamsResult(const IValue& qparams) {
   }
 }
 
+class ProcessWeightObserverSubgraph {
+ public:
+  // Given a list of nodes in src, produce a Graph with these nodes.
+  void buildObserverSubgraph(
+      const std::vector<Node*>& src,
+      std::shared_ptr<Graph> dest);
+
+  // Recursively find the nodes that produce the value and add to subgraph.
+  void findSubgraph(Value* self, Value* v, std::vector<Node*>& weight_subgraph);
+
+  // Given a list of nodes, build a graph corresponding to these nodes.
+  // User should make sure to run this graph with expected input.
+  std::unique_ptr<GraphFunction> buildGraphFromNodes(
+      const std::vector<Node*>& nodes,
+      const std::string& name);
+
+ private:
+  // Clone node in the destination Graph g.
+  void cloneNodeInGraph(Node* node, std::shared_ptr<Graph>& g);
+
+  // Create a new value corresponding to v in the Graph g.
+  Value* updateInputValueInGraph(Value* v, std::shared_ptr<Graph>& g);
+
+  // Map from values in original graph to corresponding values in the extracted
+  // subgraph.
+  std::unordered_map<Value*, Value*> remap_values_in_observer_subgraph_;
+};
+
 class InsertQuantDeQuantHelper {
  public:
   void run(Module& module, const std::string& method_name);
@@ -377,6 +405,11 @@ class InsertQuantDeQuantHelper {
   // require observation, we'll first inline the graph, and call the
   // PropgateQuantizationOps pass
   void propagateQuantizationOps(Module& module);
+
+  // Used for dynamic quantization to selectively run the weight observers.
+  // It extracts the subgraph corresponding to the weight and runs it with
+  // the module instance.
+  void runWeightObserver(Module& module, const std::string& method_name);
 
  private:
   ModuleMethodVector getInvokedMethods(
@@ -409,6 +442,14 @@ class InsertQuantDeQuantHelper {
   void cleanup(Module& module, Graph* g);
   void quantizeTensors(Module& module, Graph* g, Value* self);
 
+  // Function that extracts and runs the weight observer in a separate
+  // subgraph.
+  void extractAndRunWeightObserver(
+      Module& module,
+      Value* self,
+      Value* weight_value,
+      std::unordered_map<Value*, std::vector<Node*>>& weight_to_subgraph_nodes);
+
   std::unordered_map<Graph*, std::vector<std::string>>
       observer_modules_to_remove_;
   // We only remove observer module attributes from type in the
@@ -430,6 +471,10 @@ class InsertQuantDeQuantHelper {
   std::unordered_map<Graph*, c10::QScheme> qscheme_for_graph_;
 
   bool is_dynamic_ = false;
+
+  // Map from original weight value to list of nodes corresponding to the
+  // subgraph that includes the weight observer and dependent nodes.
+  std::unordered_map<Value*, std::vector<Node*>> weight_to_subgraph_nodes_;
 };
 
 void InsertQuantDeQuantHelper::collectObserverNodesAndValueToQuantize(
@@ -509,6 +554,113 @@ void InsertQuantDeQuantHelper::cleanup(Module& module, Graph* g) {
     observers.clear();
   }
   GRAPH_DUMP("After remove observers :", g);
+}
+
+Value* ProcessWeightObserverSubgraph::updateInputValueInGraph(
+    Value* v,
+    std::shared_ptr<Graph>& g) {
+  if (remap_values_in_observer_subgraph_.count(v) == 0) {
+    auto new_value = g->block()->addInput();
+    remap_values_in_observer_subgraph_[v] = new_value;
+    new_value->copyMetadata(v);
+    return new_value;
+  } else {
+    return remap_values_in_observer_subgraph_[v];
+  }
+}
+
+void ProcessWeightObserverSubgraph::cloneNodeInGraph(
+    Node* node,
+    std::shared_ptr<Graph>& g) {
+  auto* block = g->block();
+  auto value_fn = [&](Value* v) { return updateInputValueInGraph(v, g); };
+
+  auto new_node = block->appendNode(g->createClone(node, value_fn));
+  for (size_t i = 0; i < node->outputs().size(); ++i) {
+    auto oo = node->outputs()[i];
+    auto no = new_node->outputs()[i];
+    remap_values_in_observer_subgraph_[oo] = no;
+  }
+}
+void ProcessWeightObserverSubgraph::buildObserverSubgraph(
+    const std::vector<Node*>& weight_subgraph,
+    std::shared_ptr<Graph> dest_graph) {
+  // Build weight subgraph
+  for (auto n : weight_subgraph) {
+    cloneNodeInGraph(n, dest_graph);
+  }
+  LintGraph(dest_graph);
+
+  // Add last node output value as subgraph output.
+  for (auto out : weight_subgraph.back()->outputs()) {
+    dest_graph->registerOutput(updateInputValueInGraph(out, dest_graph));
+  }
+  GRAPH_DUMP("New weight observer subgraph: ", dest_graph);
+}
+
+void ProcessWeightObserverSubgraph::findSubgraph(
+    Value* self,
+    Value* input_val,
+    std::vector<Node*>& weight_subgraph) {
+  const auto& inputs = input_val->node()->inputs().vec();
+  for (auto v : inputs) {
+    auto n = v->node();
+    if (!hitGraphInput(n->output(0))) {
+      weight_subgraph.push_back(n);
+      findSubgraph(self, v, weight_subgraph);
+    } else {
+      TORCH_CHECK(
+          n->output(0) == self,
+          "Unexpected value found when handling weight value "
+          " in findSubgraph, traced back to:",
+          n->output(0)->debugName(),
+          " which is not self:",
+          self->debugName());
+    }
+  }
+}
+
+std::unique_ptr<GraphFunction> ProcessWeightObserverSubgraph::
+    buildGraphFromNodes(
+        const std::vector<Node*>& nodes,
+        const std::string& name) {
+  auto observer_subgraph = std::make_shared<Graph>();
+  auto build_observer_graph = [&](Function& func) {
+    buildObserverSubgraph(nodes, func.graph());
+  };
+  return torch::make_unique<GraphFunction>(
+      name, observer_subgraph, build_observer_graph);
+}
+
+void InsertQuantDeQuantHelper::extractAndRunWeightObserver(
+    Module& module,
+    Value* self,
+    Value* weight_value,
+    std::unordered_map<Value*, std::vector<Node*>>& weight_to_subgraph_nodes) {
+  Node* observer = weight_value->node();
+  Graph* g = observer->owningGraph();
+  std::vector<Node*> weight_subgraph;
+  ProcessWeightObserverSubgraph o;
+
+  // If the graph was already visited, return list of relevant nodes directly.
+  // Multiple module instances can share the same graph code, so we don't need
+  // to re-run the extraction process.
+  if (weight_to_subgraph_nodes.count(weight_value)) {
+    weight_subgraph = weight_to_subgraph_nodes[weight_value];
+  } else {
+    // Extract the subgraph nodes.
+    weight_subgraph.push_back(observer);
+    o.findSubgraph(self, weight_value, weight_subgraph);
+
+    // Reverse to traverse subgraph in correct direction
+    std::reverse(weight_subgraph.begin(), weight_subgraph.end());
+    weight_to_subgraph_nodes[weight_value] = weight_subgraph;
+  }
+  // Build the graph using the nodes found from the weight observer.
+  auto func = o.buildGraphFromNodes(weight_subgraph, "observer_subgraph");
+  Stack module_inp = {module._ivalue()};
+  // Run the graph with the module input.
+  func->run(module_inp);
 }
 
 void InsertQuantDeQuantHelper::quantizeTensors(
@@ -745,6 +897,48 @@ void propagateQuantizationOps(Block* block) {
   }
 }
 
+void InsertQuantDeQuantHelper::runWeightObserver(
+    Module& module,
+    const std::string& method_name) {
+  for (auto& invoked_methods : getInvokedMethods(module, method_name)) {
+    auto& invoked_module = std::get<0>(invoked_methods);
+    const auto& invoked_method_name = std::get<1>(invoked_methods);
+    runWeightObserver(invoked_module, invoked_method_name);
+  }
+  Method method = module.get_method(method_name);
+  auto graph = method.graph();
+  Value* self = graph->inputs()[0];
+
+  std::vector<Value*> weight_values;
+  // Visit all blocks in the current graph to find weight values.
+  std::stack<Block*> blocks_to_visit;
+  blocks_to_visit.push(graph->block());
+  while (!blocks_to_visit.empty()) {
+    Block* b = blocks_to_visit.top();
+    blocks_to_visit.pop();
+    for (auto n : b->nodes()) {
+      for (Value* v : n->outputs()) {
+        if (!v->type()->isSubtypeOf(TensorType::get())) {
+          continue;
+        }
+        auto observer_name = findObserverName(v);
+        if (observer_name && isWeight(module, v)) {
+          weight_values.push_back(v);
+        }
+      }
+      for (Block* subblock : n->blocks()) {
+        blocks_to_visit.push(subblock);
+      }
+    }
+  }
+  // For all the observed weight values, find the corresponding subgraph that
+  // contributes to the weight tensor, and run that subgraph to observe the
+  // weight.
+  for (const auto& v : weight_values) {
+    extractAndRunWeightObserver(module, self, v, weight_to_subgraph_nodes_);
+  }
+}
+
 void InsertQuantDeQuantHelper::run(
     Module& module,
     const std::string& method_name) {
@@ -966,6 +1160,9 @@ Module InsertQuantDeQuant(
   Module module = input_module.clone(inplace);
   InsertQuantDeQuantHelper h;
   h.setDynamicFlag(is_dynamic);
+  if (is_dynamic) {
+    h.runWeightObserver(module, method_name);
+  }
   h.run(module, method_name);
   h.cleanup(module);
   h.propagateQuantizationOps(module);
