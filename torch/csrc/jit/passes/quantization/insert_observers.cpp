@@ -410,54 +410,101 @@ class InsertObserversHelper {
   // These are the IR patterns we match to skip inserting observers.
   // They are compiled once on construction and used repeatedly within
   // the pass.
-  const PatternInfo nn_conv1d_f_relu = PatternInfo::parse_from_str(R"(
-graph(%self, %input, %inplace):
-    %relu = prim::Constant[name="relu"]()
-    %first_module = match::module[name="Conv1d"](%self)
+  const PatternInfo nn_conv1d_f_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %inplace, %relu):
+    %first_module = match::module[name=".Conv1d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
     %second_output = prim::CallFunction(%relu, %first_output, %inplace)
-    return (%second_output) )");
-  const PatternInfo nn_conv1d_nn_relu = PatternInfo::parse_from_str(R"(
-graph(%self, %input):
-    %first_module = match::module[name="Conv1d"](%self)
+    return (%second_output) )",
+      {is_functional_relu});
+
+  const PatternInfo nn_conv1d_nn_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %relu):
+    %first_module = match::module[name=".Conv1d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
-    %second_module = match::module[name="ReLU"](%self)
-    %second_output = prim::CallMethod[name="forward"](%second_module, %first_output)
+    %second_output = prim::CallMethod[name="forward.*"](%relu, %first_output)
+    return (%second_output) )",
+      {is_relu_module});
+
+  const PatternInfo nn_conv1d_aten_relu = PatternInfo::parse_from_str(R"(
+graph(%self, %input):
+    %first_module = match::module[name=".Conv1d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = aten::relu(%first_output)
     return (%second_output) )");
-  const PatternInfo nn_conv2d_f_relu = PatternInfo::parse_from_str(R"(
-graph(%self, %input, %inplace):
-    %relu = prim::Constant[name="relu"]()
+
+  const PatternInfo nn_conv1d_aten_relu_ = PatternInfo::parse_from_str(R"(
+graph(%self, %input):
+    %first_module = match::module[name=".Conv1d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = aten::relu_(%first_output)
+    return (%second_output) )");
+
+  const PatternInfo nn_conv2d_f_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %inplace, %relu):
+    %first_module = match::module[name=".Conv2d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = prim::CallFunction(%relu, %first_output, %inplace)
+    return (%second_output) )",
+      {is_functional_relu});
+
+  const PatternInfo nn_conv2d_nn_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %relu):
     %first_module = match::module[name="Conv2d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
-    %second_output = prim::CallFunction(%relu, %first_output, %inplace)
-    return (%second_output) )");
-  const PatternInfo nn_conv2d_nn_relu = PatternInfo::parse_from_str(R"(
+    %second_output = prim::CallMethod[name="forward.*"](%relu, %first_output)
+    return (%second_output) )",
+      {is_relu_module});
+
+  const PatternInfo nn_conv2d_aten_relu = PatternInfo::parse_from_str(R"(
 graph(%self, %input):
-    %first_module = match::module[name="Conv2d"](%self)
+    %first_module = match::module[name=".Conv2d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
-    %second_module = match::module[name="ReLU"](%self)
-    %second_output = prim::CallMethod[name="forward"](%second_module, %first_output)
+    %second_output = aten::relu(%first_output)
     return (%second_output) )");
-  const PatternInfo nn_conv3d_f_relu = PatternInfo::parse_from_str(R"(
-graph(%self, %input, %inplace):
-    %relu = prim::Constant[name="relu"]()
-    %first_module = match::module[name="Conv3d"](%self)
+
+  const PatternInfo nn_conv2d_aten_relu_ = PatternInfo::parse_from_str(R"(
+graph(%self, %input):
+    %first_module = match::module[name=".Conv2d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = aten::relu_(%first_output)
+    return (%second_output) )");
+
+  const PatternInfo nn_conv3d_f_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %inplace, %relu):
+    %first_module = match::module[name=".Conv3d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
     %second_output = prim::CallFunction(%relu, %first_output, %inplace)
-    return (%second_output) )");
-  const PatternInfo nn_conv3d_nn_relu = PatternInfo::parse_from_str(R"(
-graph(%self, %input):
-    %first_module = match::module[name="Conv3d"](%self)
+    return (%second_output) )",
+      {is_functional_relu});
+
+  const PatternInfo nn_conv3d_nn_relu = PatternInfo::parse_from_str(
+      R"(
+graph(%self, %input, %relu):
+    %first_module = match::module[name=".Conv3d"](%self)
     %first_output = prim::CallMethod[name="forward"](%first_module, %input)
-    %second_module = match::module[name="ReLU"](%self)
-    %second_output = prim::CallMethod[name="forward"](%second_module, %first_output)
+    %second_output = prim::CallMethod[name="forward.*"](%relu, %first_output)
+    return (%second_output) )",
+      {is_relu_module});
+
+  const PatternInfo nn_conv3d_aten_relu = PatternInfo::parse_from_str(R"(
+graph(%self, %input):
+    %first_module = match::module[name=".Conv3d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = aten::relu(%first_output)
     return (%second_output) )");
-  const PatternInfo matmul_add = PatternInfo::parse_from_str(R"(
-graph(%input, %weight, %bias, %4):
-     %weight_t = aten::t(%weight)
-     %first_output = aten::matmul(%input, %weight_t)
-     %second_output = aten::add_(%first_output, %bias, %4)
-     return (%second_output) )");
+
+  const PatternInfo nn_conv3d_aten_relu_ = PatternInfo::parse_from_str(R"(
+graph(%self, %input):
+    %first_module = match::module[name=".Conv3d"](%self)
+    %first_output = prim::CallMethod[name="forward"](%first_module, %input)
+    %second_output = aten::relu_(%first_output)
+    return (%second_output) )");
 
   const PatternInfo add_nn_relu = PatternInfo::parse_from_str(
       R"(
@@ -562,13 +609,19 @@ graph(%self, %a, %b, %inplace):
 
   const std::vector<std::reference_wrapper<const PatternInfo>> delay_patterns =
       {
-          nn_conv1d_f_relu,    nn_conv1d_nn_relu,     nn_conv2d_f_relu,
-          nn_conv2d_nn_relu,   nn_conv3d_f_relu,      nn_conv3d_nn_relu,
-          matmul_add,          add_nn_relu,           add_f_relu,
-          inplace_add_nn_relu, inplace_add_f_relu,    add_aten_relu,
-          add_aten_relu_,      inplace_add_aten_relu, inplace_add_aten_relu_,
-          nn_bn_nn_relu,       nn_bn_f_relu,          mul_nn_relu,
-          mul_f_relu,          inplace_mul_nn_relu,   inplace_mul_f_relu,
+          nn_conv1d_f_relu,      nn_conv1d_nn_relu,
+          nn_conv1d_aten_relu,   nn_conv1d_aten_relu_,
+          nn_conv2d_f_relu,      nn_conv2d_nn_relu,
+          nn_conv2d_aten_relu,   nn_conv2d_aten_relu_,
+          nn_conv3d_f_relu,      nn_conv3d_nn_relu,
+          nn_conv3d_aten_relu,   nn_conv3d_aten_relu_,
+          add_nn_relu,           add_f_relu,
+          inplace_add_nn_relu,   inplace_add_f_relu,
+          add_aten_relu,         add_aten_relu_,
+          inplace_add_aten_relu, inplace_add_aten_relu_,
+          nn_bn_nn_relu,         nn_bn_f_relu,
+          mul_nn_relu,           mul_f_relu,
+          inplace_mul_nn_relu,   inplace_mul_f_relu,
   };
 };
 
