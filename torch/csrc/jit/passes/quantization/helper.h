@@ -1,9 +1,15 @@
 #pragma once
 #include <torch/csrc/jit/api/module.h>
 #include <torch/csrc/jit/ir/ir.h>
+#include <torch/csrc/jit/ir/subgraph_matcher.h>
+#include <torch/csrc/jit/passes/graph_rewrite_helper.h>
+
+#include <regex>
 
 namespace torch {
 namespace jit {
+
+using graph_rewrite_helper::getFuncName;
 
 // Vector of a module and the name of its method
 using ModuleMethodVector = std::vector<std::pair<Module, std::string>>;
@@ -77,7 +83,7 @@ TORCH_API std::shared_ptr<Graph> getCallFunctionGraph(Node* n);
 // checks if a block will always raise an Exception
 TORCH_API bool alwaysRaisesException(Block* block);
 
-// =========== helper functions for Graph ==========
+// =========== helper functions for Module  ==========
 // TODO: remove
 TORCH_API std::vector<std::string> getModuleAccessPath(
     Value* instance,
@@ -89,7 +95,37 @@ findChildModule(const Module& module, const std::vector<std::string>& path);
 // Given an CallMethod node, get the module instance corresponding
 // to the instance Value
 TORCH_API Module getInvokedModule(Module& module, Node* n, Value* self);
-// =========== helper functions for Module  ==========
+
+// ==================== filter functions for matches ==============
+auto aten_add_alpha_is_one =
+    [](const Match& match,
+       const std::unordered_map<std::string, Value*>& vmap) {
+      const auto& match_vmap = match.values_map;
+      auto alpha = toIValue(match_vmap.at(vmap.at("alpha")));
+      return alpha && alpha->isInt() && alpha->toInt() == 1;
+    };
+
+auto is_functional_relu =
+    [](const Match& match,
+       const std::unordered_map<std::string, Value*>& vmap) {
+      const auto& match_vmap = match.values_map;
+      Value* relu = match_vmap.at(vmap.at("relu"));
+      return relu->type()->cast<FunctionType>() && getFuncName(relu) == "relu";
+    };
+
+auto is_relu_module = [](const Match& match,
+                         const std::unordered_map<std::string, Value*>& vmap) {
+  const auto& match_vmap = match.values_map;
+  Value* relu = match_vmap.at(vmap.at("relu"));
+  auto type = relu->type()->cast<ClassType>();
+  if (type && type->name()) {
+    static std::regex mangle_re("\\.___torch_mangle_\\d+");
+    auto qualified_name =
+        std::regex_replace(type->name()->qualifiedName(), mangle_re, "");
+    return qualified_name == "__torch__.torch.nn.modules.activation.ReLU";
+  }
+  return false;
+};
 
 } // namespace jit
 } // namespace torch
