@@ -72,7 +72,7 @@ jobs:
         }
       body: |
         {
-          "event_type":"custom_event_type"
+          "event_type":"dispatch_event_codeql"
         }
       urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
