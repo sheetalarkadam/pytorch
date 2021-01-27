@@ -24,7 +24,7 @@ jobs:
       method: 'GET'
       waitForCompletion: 'false'
   
-- job: RESTAPICallToBing
+- job: RESTAPICallToGitHub
   pool: server
   steps:
   - task: InvokeRESTAPI@1
