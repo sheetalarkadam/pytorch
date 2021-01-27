@@ -194,6 +194,7 @@ docs/source/scripts/activation_images/
 
 # build, distribute, and bins (+ python proto bindings)
 build
+!build/*.vcxproj
 build_host_protoc
 build_android
 build_ios

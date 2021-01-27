@@ -12,19 +12,55 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
   - script: echo This run is to demonstrate possible GitHub Actions/Azure Pipelines integration through GitHub Repository Dispatch Events.
-  displayName: echo Explanatory Text
-
-- job: RESTAPICallToBing
+  displayName: Checkout mstfbl/pytorch & echo Explanatory Text
+  
+- job: GitHubActionsLint
+  dependsOn: EchoText
   pool: server
   steps:
   - task: InvokeRESTAPI@1
     inputs:
       connectionType: 'connectedServiceName'
-      serviceConnection: 'Test Bing Connection'
-      method: 'GET'
+      serviceConnection: 'GitHub Actions'
+      method: 'POST'
+      headers: |
+        {
+          "Content-Type":"application/json"
+        }
+      body: |
+        {
+          "event_type":"dispatch_event_lint"
+        }
+      urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
-  
-- job: RESTAPICallToGitHub
+      successCriteria: 'eq(root[''status''], ''204 No Content'')'
+  displayName: Lint GitHub Action
+
+- job: GitHubActionsDemonstrateClientPayload
+  dependsOn: GitHubActionsLint
+  pool: server
+  steps:
+  - task: InvokeRESTAPI@1
+    inputs:
+      connectionType: 'connectedServiceName'
+      serviceConnection: 'GitHub Actions'
+      method: 'POST'
+      headers: |
+        {
+          "Content-Type":"application/json"
+        }
+      body: |
+        {
+          "event_type":"dispatch_event_client_payload_demonstration",
+          "client_payload": {"msg1":"Hello!", "msg2":"Demonstration complete."}
+        }
+      urlSuffix: 'repos/mstfbl/pytorch/dispatches'
+      waitForCompletion: 'false'
+      successCriteria: 'eq(root[''status''], ''204 No Content'')'
+  displayName: Client Payload Demonstration GitHub Action
+
+- job: GitHubActionsCodeQL
+  dependsOn: GitHubActionsLint
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -42,3 +78,5 @@ jobs:
         }
       urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
+      successCriteria: 'eq(root[''status''], ''204 No Content'')'
+  displayName: CodeQL GitHub Action

@@ -56,7 +56,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #    if(NOT CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO)
 #      find_package(Caffe2 REQUIRED)
 #    endif()
-set(CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO ON)
+set(CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO OFF)
 
 # Googletest's cmake files are going to set it on once they are processed. Let's
 # set it at the very beginning so that the entire build is deterministic.
@@ -127,21 +127,21 @@ endif()
 # Note to developers: if you add an option below, make sure you also add it to
 # cmake/Summary.cmake so that the summary prints out the option values.
 include(CMakeDependentOption)
-option(ATEN_NO_TEST "Do not build ATen test binaries" OFF)
+option(ATEN_NO_TEST "Do not build ATen test binaries" ON)
 option(BUILD_BINARY "Build C++ binaries" OFF)
 option(BUILD_DOCS "Build Caffe2 documentation" OFF)
-option(BUILD_CUSTOM_PROTOBUF "Build and use Caffe2's own protobuf under third_party" ON)
-option(BUILD_PYTHON "Build Python binaries" ON)
-option(BUILD_CAFFE2 "Master flag to build Caffe2" ON)
+option(BUILD_CUSTOM_PROTOBUF "Build and use Caffe2's own protobuf under third_party" OFF)
+option(BUILD_PYTHON "Build Python binaries" OFF)
+option(BUILD_CAFFE2 "Master flag to build Caffe2" OFF)
 cmake_dependent_option(
-    BUILD_CAFFE2_OPS "Build Caffe2 operators" ON
+    BUILD_CAFFE2_OPS "Build Caffe2 operators" OFF
     "BUILD_CAFFE2" OFF)
 cmake_dependent_option(
     BUILD_CAFFE2_MOBILE "Build libcaffe2 for mobile (deprecating)" OFF
     "BUILD_CAFFE2" OFF)
-option(BUILD_SHARED_LIBS "Build libcaffe2.so" ON)
+option(BUILD_SHARED_LIBS "Build libcaffe2.so" OFF)
 cmake_dependent_option(
-    CAFFE2_LINK_LOCAL_PROTOBUF "If set, build protobuf inside libcaffe2.so." ON
+    CAFFE2_LINK_LOCAL_PROTOBUF "If set, build protobuf inside libcaffe2.so." OFF
     "BUILD_SHARED_LIBS AND BUILD_CUSTOM_PROTOBUF" OFF)
 cmake_dependent_option(
     CAFFE2_USE_MSVC_STATIC_RUNTIME "Using MSVC static runtime libraries" ON
@@ -154,25 +154,24 @@ option(BUILD_MOBILE_TEST "Build C++ test binaries for mobile (ARM) targets(need 
 option(BUILD_JNI "Build JNI bindings" OFF)
 option(BUILD_MOBILE_AUTOGRAD "Build autograd function in mobile build (in development)" OFF)
 cmake_dependent_option(
-    INSTALL_TEST "Install test binaries if BUILD_TEST is on" ON
+    INSTALL_TEST "Install test binaries if BUILD_TEST is on" OFF
     "BUILD_TEST" OFF)
 option(USE_CPP_CODE_COVERAGE "Compile C/C++ with code coverage flags" OFF)
 option(COLORIZE_OUTPUT "Colorize output during compilation" ON)
 option(USE_ASAN "Use Address Sanitizer" OFF)
 option(USE_TSAN "Use Thread Sanitizer" OFF)
-option(USE_CUDA "Use CUDA" ON)
+option(USE_CUDA "Use CUDA" OFF)
 option(USE_FAST_NVCC "Use parallel NVCC build" OFF)
 option(USE_ROCM "Use ROCm" ON)
 option(CAFFE2_STATIC_LINK_CUDA "Statically link CUDA libraries" OFF)
 cmake_dependent_option(
-    USE_CUDNN "Use cuDNN" ON
+    USE_CUDNN "Use cuDNN" OFF
     "USE_CUDA" OFF)
 cmake_dependent_option(
     USE_STATIC_CUDNN "Use cuDNN static libraries" OFF
     "USE_CUDNN" OFF)
 option(USE_FBGEMM "Use FBGEMM (quantized 8-bit server operators)" ON)
-option(USE_KINETO "Use Kineto profiling library" ON)
-option(USE_CUPTI_SO "Use CUPTI as a shared library" OFF)
+option(USE_KINETO "Use Kineto profiling library" OFF)
 option(USE_FAKELOWP "Use FakeLowp operators" OFF)
 option(USE_FFMPEG "Use ffmpeg" OFF)
 option(USE_GFLAGS "Use GFLAGS" OFF)
@@ -236,7 +235,7 @@ set(MKLDNN_ENABLE_CONCURRENT_EXEC ${USE_MKLDNN})
 cmake_dependent_option(
     USE_MKLDNN_CBLAS "Use CBLAS in MKLDNN" OFF
     "USE_MKLDNN" OFF)
-option(USE_DISTRIBUTED "Use distributed" ON)
+option(USE_DISTRIBUTED "Use distributed" OFF)
 cmake_dependent_option(
     USE_MPI "Use MPI for Caffe2. Only available if USE_DISTRIBUTED is on." ON
     "USE_DISTRIBUTED" OFF)
@@ -249,7 +248,6 @@ cmake_dependent_option(
 option(USE_TBB "Use TBB" OFF)
 option(ONNX_ML "Enable traditional ONNX ML API." ON)
 option(HAVE_SOVERSION "Whether to add SOVERSION to the shared objects" OFF)
-option(USE_DEPLOY "Enable torch::deploy embedded python interpreter" OFF)
 
 # Since TensorPipe does not support Windows, set it to OFF when WIN32 detected
 # On Windows platform, if user does not install libuv in build conda env and
@@ -547,10 +545,29 @@ if(USE_FBGEMM AND ((CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND CMAKE_SIZEOF_VO
   set(USE_FBGEMM OFF)
 endif()
 
+if(USE_KINETO AND INTERN_BUILD_MOBILE)
+  message(STATUS "Not using libkineto in a mobile build.")
+  set(USE_KINETO OFF)
+endif()
+
+if(USE_KINETO AND (NOT USE_CUDA))
+  message(STATUS "Not using libkineto in a non-CUDA build.")
+  set(USE_KINETO OFF)
+endif()
+
+if(USE_KINETO AND MSVC)
+  message(STATUS "Not using libkineto in a Windows build.")
+  set(USE_KINETO OFF)
+endif()
+
 include(cmake/Dependencies.cmake)
 
 if(USE_FBGEMM)
   string(APPEND CMAKE_CXX_FLAGS " -DUSE_FBGEMM")
+endif()
+
+if(USE_KINETO)
+  string(APPEND CMAKE_CXX_FLAGS " -DUSE_KINETO")
 endif()
 
 if(USE_QNNPACK)
@@ -782,7 +799,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/aten/src/)
 
 # ---[ Main build
 add_subdirectory(c10)
-add_subdirectory(caffe2)
+# add_subdirectory(caffe2)
 
 # --[ Documentation
 if(BUILD_DOCS)
@@ -919,8 +936,3 @@ endif()
 
 include(cmake/Summary.cmake)
 caffe2_print_configuration_summary()
-
-# ---[ Torch Deploy
-if(USE_DEPLOY)
-  add_subdirectory(torch/csrc/deploy)
-endif()

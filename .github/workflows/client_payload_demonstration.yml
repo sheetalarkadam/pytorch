@@ -1,0 +1,10 @@
+name: Demonstrate GitHub Repository Dispatch Carrying Client Payload
+on:
+  repository_dispatch:
+    types:
+    - dispatch_event_client_payload_demonstration
+
+jobs:
+  update-html:
+    runs-on: ubuntu-latest
+    - script: echo ${{ github.event.client_payload.msg1 }} ${{ github.event.client_payload.msg2 }}
