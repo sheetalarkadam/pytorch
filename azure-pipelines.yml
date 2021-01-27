@@ -30,15 +30,15 @@ jobs:
   - task: InvokeRESTAPI@1
     inputs:
       connectionType: 'connectedServiceName'
-      serviceConnection: 'GitHub.com/repos/mstfbl/pytorch Connection'
+      serviceConnection: 'GitHub Actions'
       method: 'POST'
       headers: |
         {
-        "Content-Type":"application/json", 
-        "Accept:application/vnd.github.v3+json"
+          "Content-Type":"application/json"
         }
       body: |
         {
-        "event_type":"custom_event_type"
+          "event_type":"custom_event_type"
         }
+      urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
