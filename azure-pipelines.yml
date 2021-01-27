@@ -15,7 +15,7 @@ jobs:
   displayName: Checkout mstfbl/pytorch & echo Explanatory Text
   
 - job: GitHubActionsLint
-  dependsOn: EchoText
+  #dependsOn: EchoText
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -33,11 +33,10 @@ jobs:
         }
       urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
-      successCriteria: 'eq(root[''status''], ''204 No Content'')'
   displayName: Lint GitHub Action
 
 - job: GitHubActionsDemonstrateClientPayload
-  dependsOn: GitHubActionsLint
+  #dependsOn: GitHubActionsLint
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -56,11 +55,10 @@ jobs:
         }
       urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
-      successCriteria: 'eq(root[''status''], ''204 No Content'')'
   displayName: Client Payload Demonstration GitHub Action
 
 - job: GitHubActionsCodeQL
-  dependsOn: GitHubActionsLint
+  #dependsOn: GitHubActionsDemonstrateClientPayload
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -78,5 +76,4 @@ jobs:
         }
       urlSuffix: 'repos/mstfbl/pytorch/dispatches'
       waitForCompletion: 'false'
-      successCriteria: 'eq(root[''status''], ''204 No Content'')'
   displayName: CodeQL GitHub Action
