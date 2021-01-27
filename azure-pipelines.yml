@@ -15,7 +15,7 @@ jobs:
   displayName: Checkout mstfbl/pytorch & echo Explanatory Text
   
 - job: GitHubActionsLint
-  #dependsOn: EchoText
+  dependsOn: EchoText
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -36,7 +36,7 @@ jobs:
   displayName: Lint GitHub Action
 
 - job: GitHubActionsDemonstrateClientPayload
-  #dependsOn: GitHubActionsLint
+  dependsOn: GitHubActionsLint
   pool: server
   steps:
   - task: InvokeRESTAPI@1
@@ -58,7 +58,7 @@ jobs:
   displayName: Client Payload Demonstration GitHub Action
 
 - job: GitHubActionsCodeQL
-  #dependsOn: GitHubActionsDemonstrateClientPayload
+  dependsOn: GitHubActionsDemonstrateClientPayload
   pool: server
   steps:
   - task: InvokeRESTAPI@1
