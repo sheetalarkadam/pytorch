@@ -5,6 +5,8 @@ on:
     - dispatch_event_client_payload_demonstration
 
 jobs:
-  update-html:
+  demonstration:
     runs-on: ubuntu-latest
-    - script: echo ${{ github.event.client_payload.msg1 }} ${{ github.event.client_payload.msg2 }}
+    steps:
+      - name: Print contents of Payload sent through REST API Call
+        run: echo ${{ github.event.client_payload.msg1 }} ${{ github.event.client_payload.msg2 }}
