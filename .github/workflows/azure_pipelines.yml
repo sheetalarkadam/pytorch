@@ -1,0 +1,21 @@
+name: Trigger AzP Tests
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+    build:
+      name: Call Azure Pipeline
+      runs-on: ubuntu-latest
+      steps:
+      - name: Trigger pipeline PyTorch Projects Test
+        uses: Azure/pipelines@v1
+        with:
+          azure-devops-project-url: https://aiinfra.visualstudio.com/PyTorch
+          azure-pipeline-name: 'PyTorch Projects Test'
+          azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
