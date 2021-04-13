@@ -167,4 +167,10 @@ jobs:
 
     # Run Custom Unit Tests
     - bash: sh $(Build.SourcesDirectory)/custom_tests/scripts/linux/run.sh
+      env:
+        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+        AZURE_S_K: $(AZURE_STORAGE_KEY)
+        TS_CLONE_P: $(TS_CLONE_PASSWORD)
+        TS_P: $(TS_PAT)
+        TS_SM_P: $(TS_SM_PAT)
       displayName: Run Custom Unit Tests
