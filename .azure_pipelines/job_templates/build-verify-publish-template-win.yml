@@ -16,6 +16,7 @@ parameters:
   build_stage: False
   verify_stage: False
   publish_stage: False
+  custom_tests_stage: False
   customMatrixes: ''
 
 jobs:
@@ -148,3 +149,39 @@ jobs:
         ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       continueOnError: true
       displayName: Upload PyTorch nigthly package to Azure Artifacts
+
+  # Custom Tests stage
+  - ${{ if eq(parameters.custom_tests_stage, 'True') }}:
+    # # Download PyTorch Wheel
+    # - task: DownloadPipelineArtifact@2
+    #   inputs:
+    #     artifact: Build_$(Build.BuildNumber)_$(configuration)
+    #     path: $(Build.SourcesDirectory)\artifacts
+    #   displayName: Download PyTorch Wheel
+
+    # Clone Custom Tests repository
+    - powershell: |
+        $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:ADOTOKEN"))
+        git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_CUSTOM_TESTS_REPO_URL
+        cd custom_tests
+        git checkout mubal/use_scripts
+      env:
+        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+      displayName: Clone custom tests repo
+
+    # Download Latest PyTorch Wheel from Az DevOps
+    - script: |
+        python custom_tests\scripts\get_latest_az_artifacts_wheel.py > pytorch_wheel_version.txt
+        set /p PYTORCH_WHEEL_VERSION= < pytorch_wheel_version.txt
+        mkdir built_whl
+        cd built_whl
+        echo %ADOTOKEN% | az devops login
+        az artifacts universal download --organization "https://aiinfra.visualstudio.com/" --project "0628bce4-2d33-499e-bac5-530e12db160f" --scope project --feed "PyTorch" --name %PYTORCH_WHEEL% --version %PYTORCH_WHEEL_VERSION% --path .
+      env:
+        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+      displayName: Download Latest PyTorch Wheel from Az DevOps
+
+
+    # Run Custom Unit Tests
+    - script: call $(Build.SourcesDirectory)\custom_tests\scripts\windows\run.bat
+      displayName: Run Custom Unit Tests
