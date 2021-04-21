@@ -17,7 +17,7 @@ parameters:
   build_stage: False
   verify_stage: False
   publish_stage: False
-  custom_tests_stage: False
+  pytorch_tests_stage: False
   customMatrixes: ''
 
 jobs:
@@ -134,24 +134,24 @@ jobs:
       continueOnError: true
       displayName: Upload PyTorch Official Build package to Azure Artifacts
 
-  # Custom Tests stage
-  - ${{ if eq(parameters.custom_tests_stage, 'True') }}:
-    # Delete custom_tests repo from previous builds if exists
-    - bash: rm -rf custom_tests/
-      displayName: Delete custom_tests repo from previous builds if exists
+  # PyTorch Tests stage
+  - ${{ if eq(parameters.pytorch_tests_stage, 'True') }}:
+    # Delete pytorch_tests repo from previous builds if exists
+    - bash: rm -rf pytorch_tests/
+      displayName: Delete pytorch_tests repo from previous builds if exists
 
-    # Clone Custom Tests repository
+    # Clone PyTorch Tests repository
     - bash: |
         B64_PAT=$(printf "%s"":$ADOTOKEN" | base64)
-        git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $AZURE_DEVOPS_CUSTOM_TESTS_REPO_URL
-        cd custom_tests
+        git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $(AZURE_DEVOPS_PYTORCH_TESTS_REPO_URL)
+        cd pytorch_tests
         git checkout mubal/use_scripts
       env:
         ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
-      displayName: Clone custom tests repo
+      displayName: Clone PyTorch Tests repo
 
-    # Run Custom Unit Tests
-    - bash: sh $(Build.SourcesDirectory)/custom_tests/scripts/linux/run.sh
+    # Run PyTorch Unit Tests
+    - bash: sh $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
       env:
         TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_BUILD)
         PYTHON_VERSION: $(PYTHON_VERSION)
@@ -162,4 +162,4 @@ jobs:
         TS_CLONE_P: $(TS_CLONE_PASSWORD)
         TS_P: $(TS_PAT)
         TS_SM_P: $(TS_SM_PAT)
-      displayName: Run Custom Unit Tests
+      displayName: Run PyTorch Unit Tests

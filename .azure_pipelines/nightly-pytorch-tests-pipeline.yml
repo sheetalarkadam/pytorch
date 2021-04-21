@@ -1,4 +1,4 @@
-# PyTorch Nightly Custom Tests Builds Pipeline on Azure DevOps
+# PyTorch Nightly PyTorch Tests Builds Pipeline on Azure DevOps
 #
 # This pipeline runs custom PyTorch unit-tests on nightly
 # PyTorch wheels.
@@ -12,7 +12,7 @@ stages:
       name: ubuntu_1804_CPU_docker
       pool: 'PyTorch-Linux-CPU'
       container_endpoint: pytorchms.azurecr.io
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_38:
           configuration: ubuntu_1804_py_38_cpu
@@ -25,7 +25,7 @@ stages:
       name: ubuntu_1804_GPU_docker
       pool: 'PyTorch-Linux-GPU'
       container_endpoint: pytorchms.azurecr.io
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_38_CUDA_102_cuDNN_810:
           configuration: ubuntu_1804_py_38_cuda_102_cudnn_8_dev
@@ -37,7 +37,7 @@ stages:
     parameters:
       name: windows_2019_CPU
       pool: 'PyTorch-Win-CPU'
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_37:
           configuration: windows_2019_py_38_cpu
@@ -48,7 +48,7 @@ stages:
     parameters:
       name: windows_2019_GPU
       pool: 'PyTorch-Win-GPU'
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_38_CUDA_112_cuDNN_810:
           configuration: windows_2019_py_38_cuda_112_cudnn_810

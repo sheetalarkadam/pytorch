@@ -1,4 +1,4 @@
-# PyTorch PR Custom Tests Builds Pipeline on Azure DevOps
+# PyTorch PR PyTorch Tests Builds Pipeline on Azure DevOps
 #
 # This pipeline runs custom PyTorch unit-tests on PyTorch 
 # wheels generated during PR builds.
@@ -12,7 +12,7 @@ stages:
       name: ubuntu_1804_CPU_docker
       pool: 'PyTorch-Linux-CPU'
       container_endpoint: pytorchms.azurecr.io
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_36:
           configuration: ubuntu_1804_py_38_cpu
@@ -26,7 +26,7 @@ stages:
       name: ubuntu_1804_GPU_docker
       pool: 'PyTorch-Linux-GPU'
       container_endpoint: pytorchms.azurecr.io
-      custom_tests_stage: True
+      pytorch_tests_stage: True
       customMatrixes:
         Py_36_CUDA_102_cuDNN_8:
           configuration: ubuntu_1804_py_36_cuda_102_cudnn_7
