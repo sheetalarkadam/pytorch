@@ -16,6 +16,7 @@ parameters:
   build_stage: False
   verify_stage: False
   publish_stage: False
+  custom_tests_stage: False
   customMatrixes: ''
 
 jobs:
@@ -37,15 +38,15 @@ jobs:
       configuration: $(configuration)
       build_stage: ${{ parameters.build_stage}}
 
+  # Set up environment variables for specific pipeline build
+  - template: set-environment-variables.yml
+    parameters:
+      os: ${{ parameters.os}}
+      cuda: ${{ parameters.cuda}}
+      is_official_build: ${{ parameters.is_official_build}}
+
   # Build Stage
   - ${{ if eq(parameters.build_stage, 'True') }}:
-    # Set up environment variables for specific pipeline build
-    - template: set-environment-variables.yml
-      parameters:
-        os: ${{ parameters.os}}
-        cuda: ${{ parameters.cuda}}
-        is_official_build: ${{ parameters.is_official_build}}
-
     # Sync and update PyTorch submodules
     - script: git submodule update --init --recursive
       displayName: Update PyTorch submodules
@@ -148,3 +149,30 @@ jobs:
         ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       continueOnError: true
       displayName: Upload PyTorch nigthly package to Azure Artifacts
+
+  # Custom Tests stage
+  - ${{ if eq(parameters.custom_tests_stage, 'True') }}:
+    # Delete custom_tests repo from previous builds if exists
+    - script: if exist "custom_tests/" rmdir "custom_tests/" /q /s
+      displayName: Delete custom_tests repo from previous builds if exists
+
+    # Clone Custom Tests repository
+    - powershell: |
+        $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:ADOTOKEN"))
+        git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_CUSTOM_TESTS_REPO_URL
+        cd custom_tests
+        git checkout mubal/use_scripts
+      env:
+        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+      displayName: Clone custom tests repo
+
+    # Run Custom Unit Tests
+    - script: call $(Build.SourcesDirectory)\custom_tests\scripts\windows\run.bat
+      env:
+        TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_BUILD)
+        PYTHON_VERSION: $(PYTHON_VERSION)
+        CUDA_VERSION: $(CUDA_VERSION)
+        NIGHTLY_BUILD: $(NIGHTLY_BUILD)
+        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+        AZURE_S_K: $(AZURE_STORAGE_KEY)
+      displayName: Run Custom Unit Tests

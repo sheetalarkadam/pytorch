@@ -14,12 +14,11 @@ steps:
     IF %ERRORLEVEL% EQU 128 exit 0
   displayName: End previous Python processes
 
-# Clean up env directory in conda for fresh builds and set up conda environment YAML
+# Set up conda environment YAML
 - powershell: |
-    Remove-Item 'C:\Miniconda\envs' -Recurse -ErrorAction Ignore
     $env:PYTHON_VERSION = $env:SYSTEM_JOBNAME.Substring(3,1) + '.' + $env:SYSTEM_JOBNAME.Substring(4,1)
     (Get-Content .azure_pipelines\job_templates\common-packages.yml) -replace 'PYTHON_VERSION', $env:PYTHON_VERSION | Out-File -encoding ASCII .azure_pipelines\job_templates\common-packages.yml
-  displayName: Clean up previous environments and Set up conda environment YAML
+  displayName: Set up conda environment YAML
 
 # Make conda environment and install required packages
 - script: |
@@ -29,7 +28,7 @@ steps:
     call conda install -c conda-forge libuv=1.39
   displayName: Set up conda environment for building from source
 
-- ${{ if eq(parameters.build_stage, 'True') }}:
+- ${{ if or(eq(parameters.build_stage, 'True'), eq(parameters.custom_stage, 'True')) }}:
   # Install MKL
   - script: |
       rmdir /s /q mkl
@@ -48,14 +47,14 @@ steps:
       copy .\tmp_bin\sccache.exe .\tmp_bin\nvcc.exe
       curl -kL https://github.com/peterjc123/randomtemp-rust/releases/download/v0.3/randomtemp.exe --output .\tmp_bin\randomtemp.exe
     displayName: Install sccache and randomtemp
-    condition: not(eq(variables.CUDA_VERSION, ''))
+    condition: not(eq(variables.CUDA_VERSION, 'cpu'))
 
   # CUDA 11.2's CUB directory conflicts with CUDA 10.2 and 10.1
   # builds, where CUDA 11.2's CUB is injected into non-CUDA
   # 11.2 builds.
   - powershell: Remove-Item "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include\cub" -Recurse -ErrorAction Ignore
     displayName: Remove conflicting CUB from CUDA installation
-    condition: not(eq(variables.CUDA_VERSION, ''))
+    condition: not(eq(variables.CUDA_VERSION, 'cpu'))
 
   - powershell: Copy-Item -Path "F:\cuda_11_2\cub\" -Destination "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include" -Recurse
     displayName: Copy CUDA CUB for CUDA 11.2 build
