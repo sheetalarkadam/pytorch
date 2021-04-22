@@ -17,18 +17,6 @@ jobs:
     name: ${{ parameters.pool}}
 
   steps:
-  # End Python tasks that may be lingering over from previous runs
-  # Note: If python.exe isn't currently running, exit code becomes 128,
-  # which fails the run. Here exit code is set to 0 to avoid failed run.
-  - script: |
-      taskkill /f /im python.exe
-      IF %ERRORLEVEL% EQU 128 exit 0
-    displayName: End previous Python processes
-
-  # Always clean up env directory in conda for fresh builds
-  - powershell: Remove-Item 'C:\Miniconda\envs' -Recurse -ErrorAction Ignore
-    displayName: Pre-build clean up previous environments
-
   # Delete pytorch_tests repo from previous builds if exists
   - script: if exist "pytorch_tests/" rmdir "pytorch_tests/" /q /s
     displayName: Delete pytorch_tests repo from previous builds if exists
@@ -38,7 +26,7 @@ jobs:
       $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:ADOTOKEN"))
       git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_pytorch_tests_REPO_URL
       cd pytorch_tests
-      git checkout mubal/use_scripts
+      git checkout mubal/exp_use_scripts
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
@@ -46,10 +34,6 @@ jobs:
   # Run PyTorch Unit Tests
   - script: call $(Build.SourcesDirectory)\pytorch_tests\scripts\windows\run.bat
     env:
-      TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_BUILD)
-      PYTHON_VERSION: $(PYTHON_VERSION)
-      CUDA_VERSION: $(CUDA_VERSION)
-      NIGHTLY_BUILD: $(NIGHTLY_BUILD)
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       AZURE_S_K: $(AZURE_STORAGE_KEY)
     displayName: Run PyTorch Unit Tests

@@ -27,7 +27,7 @@ stages:
       container_endpoint: pytorchms.azurecr.io
       pytorch_tests_stage: True
       customMatrixes:
-        Py_38_CUDA_102_cuDNN_810:
+        Py_37_CUDA_102_cuDNN_810:
           configuration: ubuntu_1804_py_38_cuda_102_cudnn_8_dev
           container_image: pytorchms.azurecr.io/ubuntu_1804_py_38_cuda_102_cudnn_8_dev
           PYTHON_VERSION: 3.7
@@ -50,7 +50,7 @@ stages:
       pool: 'PyTorch-Win-GPU'
       pytorch_tests_stage: True
       customMatrixes:
-        Py_38_CUDA_112_cuDNN_810:
-          configuration: windows_2019_py_38_cuda_112_cudnn_810
+        Py_38_CUDA_102_cuDNN_810:
+          configuration: windows_2019_py_38_cuda_102_cudnn_810
           PYTHON_VERSION: 3.8
-          CUDA_VERSION: 112
+          CUDA_VERSION: 102
