@@ -7,50 +7,42 @@ stages:
 - stage: 'NightlyCustomTests'
   displayName: 'Run custom unit tests on PyTorch wheels'
   jobs:
-  - template: job_templates/build-verify-publish-template-unix.yml
+  - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_CPU_docker
       pool: 'PyTorch-Linux-CPU'
       container_endpoint: pytorchms.azurecr.io
-      pytorch_tests_stage: True
       customMatrixes:
         Py_38:
-          configuration: ubuntu_1804_py_38_cpu
-          container_image: pytorchms.azurecr.io/ubuntu_1804_py_38_cpu_dev
+          container_image: pytorchms.azurecr.io/ubuntu_1804_cpu_dev
           PYTHON_VERSION: 3.8
           CUDA_VERSION: cpu
 
-  - template: job_templates/build-verify-publish-template-unix.yml
+  - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
       pool: 'PyTorch-Linux-GPU'
       container_endpoint: pytorchms.azurecr.io
-      pytorch_tests_stage: True
       customMatrixes:
-        Py_38_CUDA_102_cuDNN_810:
-          configuration: ubuntu_1804_py_38_cuda_102_cudnn_8_dev
-          container_image: pytorchms.azurecr.io/ubuntu_1804_py_38_cuda_102_cudnn_8_dev
+        Py_37_CUDA_102_cuDNN_7:
+          container_image: pytorchms.azurecr.io/ubuntu_1804_cuda_102_cudnn_7_dev
           PYTHON_VERSION: 3.7
           CUDA_VERSION: 102
 
-  - template: job_templates/build-verify-publish-template-win.yml
+  - template: job_templates/pytorch-template-win.yml
     parameters:
       name: windows_2019_CPU
       pool: 'PyTorch-Win-CPU'
-      pytorch_tests_stage: True
       customMatrixes:
         Py_37:
-          configuration: windows_2019_py_38_cpu
           PYTHON_VERSION: 3.7
           CUDA_VERSION: cpu
 
-  - template: job_templates/build-verify-publish-template-win.yml
+  - template: job_templates/pytorch-template-win.yml
     parameters:
       name: windows_2019_GPU
       pool: 'PyTorch-Win-GPU'
-      pytorch_tests_stage: True
       customMatrixes:
-        Py_38_CUDA_112_cuDNN_810:
-          configuration: windows_2019_py_38_cuda_112_cudnn_810
+        Py_38_CUDA_102_cuDNN_7:
           PYTHON_VERSION: 3.8
-          CUDA_VERSION: 112
+          CUDA_VERSION: 102
