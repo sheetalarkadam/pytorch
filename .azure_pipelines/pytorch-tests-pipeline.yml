@@ -4,8 +4,21 @@
 # wheels generated during PR builds.
 
 stages:
+- stage: 'EnsureArtifactsReady'
+  displayName: 'Ensure PyTorch PR Linux GPU Artifacts are ready'
+  jobs:
+  - template: job_templates/check-artifact-status-template.yml
+    parameters:
+      name: Verify
+      pool: 'PyTorch-Lin-CPU-Burstable-VMSS'
+      customMatrixes:
+        Ubuntu:
+          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR_BUILD_1)
+
 - stage: 'PRCustomTests'
   displayName: 'Run custom unit tests on PyTorch wheels'
+  dependsOn: EnsureArtifactsReady
+  condition: succeeded()
   jobs:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
