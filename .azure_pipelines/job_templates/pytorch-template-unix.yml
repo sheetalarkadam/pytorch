@@ -1,7 +1,9 @@
 # PyTorch build steps template with Unix images Azure DevOps Instances
 #
-# This build depends on 1 parameters set as an environment variable in the pipeline:
+# This build depends on 5 parameters set as an environment variables in the pipeline:
 #   - AZURE_DEVOPS_CLI_PAT: Secret var for authenticating to Azure DevOps
+#   - AZURE_STORAGE_KEY: Secret var for authenticating to Azure Storage
+#   - TS_CLONE_P, TS_P, TS_SM_P: Secret vars for specific unit tests
 
 parameters:
   name: ''
@@ -39,7 +41,7 @@ jobs:
     displayName: Clone PyTorch Tests repo
 
   # Run PyTorch Unit Tests
-  - bash: sh $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
+  - bash: bash $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       AZURE_S_K: $(AZURE_STORAGE_KEY)

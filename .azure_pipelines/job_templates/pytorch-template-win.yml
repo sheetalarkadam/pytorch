@@ -1,7 +1,9 @@
 # PyTorch build steps template with Windows images Azure DevOps Instances
 #
-# This build depends on 1 parameter set as an environment variable in the pipeline:
+# This build depends on 2 parameters set as an environment variables in the pipeline:
 #   - AZURE_DEVOPS_CLI_PAT: Secret var for authenticating to Azure DevOps
+#   - AZURE_STORAGE_KEY: Secret var for authenticating to Azure Storage
+
 parameters:
   name: ''
   pool: ''
