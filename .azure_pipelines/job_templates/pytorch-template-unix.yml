@@ -41,7 +41,7 @@ jobs:
     displayName: Clone PyTorch Tests repo
 
   # Run PyTorch Unit Tests
-  - bash: sh $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
+  - bash: bash $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       AZURE_S_K: $(AZURE_STORAGE_KEY)

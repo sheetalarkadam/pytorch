@@ -17,6 +17,7 @@ stages:
           container_image: pytorchms.azurecr.io/ubuntu_1804_cpu_dev
           PYTHON_VERSION: 3.8
           CUDA_VERSION: cpu
+          RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-unix.yml
     parameters:
@@ -28,6 +29,7 @@ stages:
           container_image: pytorchms.azurecr.io/ubuntu_1804_cuda_102_cudnn_7_dev
           PYTHON_VERSION: 3.7
           CUDA_VERSION: 102
+          RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
@@ -37,6 +39,7 @@ stages:
         Py_37:
           PYTHON_VERSION: 3.7
           CUDA_VERSION: cpu
+          RUN_TESTS: $(RUN_TESTS_WIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
@@ -46,3 +49,4 @@ stages:
         Py_38_CUDA_102_cuDNN_7:
           PYTHON_VERSION: 3.8
           CUDA_VERSION: 102
+          RUN_TESTS: $(RUN_TESTS_WIN)

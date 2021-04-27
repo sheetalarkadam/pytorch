@@ -18,4 +18,5 @@ stages:
           PYTHON_VERSION: 3.6
           CUDA_VERSION: 102
           TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR_BUILD_1)
+          RUN_TESTS: $(RUN_TESTS_LIN)
  
