@@ -1,4 +1,7 @@
 # PyTorch check artifacts status template
+#
+# Pipeline build delay amount depends on the $(PR_BUILD_DELAY_AMOUNT)
+# environment variable set in Azure Pipeline.
 
 parameters:
   name: ''
@@ -6,6 +9,16 @@ parameters:
   customMatrixes: ''
 
 jobs:
+# Delay job for a max timeout of 60 minutes as target artifact
+# takes >1 hr to build.
+- job: RunsOnServer
+  pool: Server
+  steps:
+  - task: Delay@1
+    inputs:
+      delayForMinutes: $(PR_BUILD_DELAY_AMOUNT)
+    displayName: Delay build
+
 - job: ${{parameters.name}}
   timeoutInMinutes: 600
   strategy:
@@ -14,25 +27,30 @@ jobs:
   pool:
     name: ${{ parameters.pool}}
 
+  # Don't checkout full repository to save time and CPU compute
   steps:
   - checkout: none
 
+  # View all environment variables visible
   - bash: printenv
     displayName: Print all envs visible
 
-  # Delete pytorch_tests repo from previous builds if exists
+  # Delete pytorch_tests repo from previous builds, if exists
   - bash: rm -rf pytorch_tests/
-    displayName: Delete pytorch_tests repo from previous builds if exists
+    displayName: Delete pytorch_tests repo from previous builds, if exists
 
   # Clone PyTorch Tests repository
   - bash: |
       B64_PAT=$(printf "%s"":$ADOTOKEN" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $(AZURE_DEVOPS_PYTORCH_TESTS_REPO_URL)
       cd pytorch_tests
-      git checkout mubal/exp_use_scripts
+      git checkout mubal/exp_use_scripts_test_other_prs
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
-  
+
+  # Ensure target artifact from CircleCI is ready to be downloaded.
+  # If still building, wait. If build fails, fail this Azure Pipelines build.
+  # If build is cancelled, end and delete this Azure Pipelines build.
   - bash: python3 $(Build.SourcesDirectory)/pytorch_tests/scripts/download_circleci_wheel.py check
     displayName: Check PyTorch PR build status
