@@ -3,6 +3,7 @@
 # This pipeline runs custom PyTorch unit-tests on PyTorch 
 # wheels generated during PR builds.
 
+name: $(Build.BuildId)_PyTorch_Tests_Nightly_$(Date:yyyyMMdd) 
 stages:
 - stage: 'PRCustomTests'
   displayName: 'Run custom unit tests on PyTorch wheels'
