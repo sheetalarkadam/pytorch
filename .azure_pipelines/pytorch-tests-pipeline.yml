@@ -13,7 +13,7 @@ stages:
       pool: $(BUILD_POOL_VMSS_BURSTABLE)
       customMatrixes:
         Ubuntu:
-          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
+          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR_TEMP_CUDA_111)
 
 - stage: 'PRCustomTests'
   displayName: 'Run custom unit tests on PyTorch wheels'
@@ -25,9 +25,9 @@ stages:
       container_endpoint: pytorchms.azurecr.io
       customMatrixes:
         PR_Custom_Tests:
-          container_image: $(CONTAINER_IMAGE_PR)
+          container_image: $(CONTAINER_IMAGE_PR_TEMP_CUDA_111)
           PYTHON_VERSION: $(PYTHON_VERSION_PR)
-          CUDA_VERSION: $(CUDA_VERSION_PR)
-          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
+          CUDA_VERSION: $(CUDA_VERSION_PR_TEMP_CUDA_111)
+          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR_TEMP_CUDA_111)
           RUN_TESTS: $(RUN_TESTS_PR)
  
