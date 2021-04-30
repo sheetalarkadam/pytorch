@@ -10,43 +10,43 @@ stages:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_CPU_docker
-      pool: 'PyTorch-Linux-CPU'
+      pool: $(BUILD_POOL_LIN_1)
       container_endpoint: pytorchms.azurecr.io
       customMatrixes:
-        Py_38:
-          container_image: pytorchms.azurecr.io/ubuntu_1804_cpu_dev
-          PYTHON_VERSION: 3.8
-          CUDA_VERSION: cpu
+        Nightly_Custom_Tests:
+          container_image: $(CONTAINER_IMAGE_LIN_1)
+          PYTHON_VERSION: $(PYTHON_VERSION_LIN_1)
+          CUDA_VERSION: $(CUDA_VERSION_LIN_1)
           RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
-      pool: 'PyTorch-Linux-GPU'
+      pool: $(BUILD_POOL_LIN_2)
       container_endpoint: pytorchms.azurecr.io
       customMatrixes:
-        Py_37_CUDA_102_cuDNN_7:
-          container_image: pytorchms.azurecr.io/ubuntu_1804_cuda_102_cudnn_7_dev
-          PYTHON_VERSION: 3.7
-          CUDA_VERSION: 102
+        Nightly_Custom_Tests:
+          container_image: $(CONTAINER_IMAGE_LIN_2)
+          PYTHON_VERSION: $(PYTHON_VERSION_LIN_2)
+          CUDA_VERSION: $(CUDA_VERSION_LIN_2)
           RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
       name: windows_2019_CPU
-      pool: 'PyTorch-Win-CPU'
+      pool: $(BUILD_POOL_WIN_1)
       customMatrixes:
-        Py_37:
-          PYTHON_VERSION: 3.7
-          CUDA_VERSION: cpu
+        Nightly_Custom_Tests:
+          PYTHON_VERSION: $(PYTHON_VERSION_WIN_1)
+          CUDA_VERSION: $(CUDA_VERSION_WIN_1)
           RUN_TESTS: $(RUN_TESTS_WIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
       name: windows_2019_GPU
-      pool: 'PyTorch-Win-GPU'
+      pool: $(BUILD_POOL_WIN_2)
       customMatrixes:
-        Py_38_CUDA_102_cuDNN_7:
-          PYTHON_VERSION: 3.8
-          CUDA_VERSION: 102
+        Nightly_Custom_Tests:
+          PYTHON_VERSION: $(PYTHON_VERSION_WIN_2)
+          CUDA_VERSION: $(CUDA_VERSION_WIN_2)
           RUN_TESTS: $(RUN_TESTS_WIN)
