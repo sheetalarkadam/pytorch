@@ -28,7 +28,7 @@ jobs:
       $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:ADOTOKEN"))
       git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_pytorch_tests_REPO_URL
       cd pytorch_tests
-      git checkout mubal/exp_use_scripts
+      git checkout mubal/add_to_script_logic
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
