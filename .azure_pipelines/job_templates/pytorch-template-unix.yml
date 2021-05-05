@@ -21,11 +21,10 @@ jobs:
     name: ${{ parameters.pool}}
   variables:
     DECODE_PERCENTS: false
-  container:
-    image: $[variables['container_image']]
-    endpoint: ${{parameters.container_endpoint}}
 
   steps:
+  - checkout: none
+
   # Delete pytorch_tests repo from previous builds if exists
   - bash: rm -rf pytorch_tests/
     displayName: Delete pytorch_tests repo from previous builds if exists
@@ -35,6 +34,7 @@ jobs:
       B64_PAT=$(printf "%s"":$ADOTOKEN" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $(AZURE_DEVOPS_PYTORCH_TESTS_REPO_URL)
       cd pytorch_tests
+      git checkout mubal/add_linux_gpu_vmss
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo

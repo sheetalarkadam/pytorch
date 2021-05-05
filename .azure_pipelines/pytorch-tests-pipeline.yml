@@ -21,8 +21,7 @@ stages:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
-      pool: $(BUILD_POOL_PR)
-      container_endpoint: pytorchms.azurecr.io
+      pool: $(BUILD_POOL_VMSS_BURSTABLE_GPU)
       customMatrixes:
         PR_Custom_Tests:
           container_image: $(CONTAINER_IMAGE_PR)
