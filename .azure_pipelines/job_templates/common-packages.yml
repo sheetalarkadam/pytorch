@@ -1,5 +1,5 @@
 dependencies:
-  - python=PYTHON_VERSION
+  - python=_PYTHON_VERSION
   - numpy
   - ninja
   - pyyaml

@@ -126,9 +126,9 @@ jobs:
         cd $(Build.SourcesDirectory)/publish
         export TORCH_WHEEL=$(echo torch*linux*whl)
         az extension add -n azure-devops
-        echo $ADOTOKEN | az devops login
+        echo $_ADOTOKEN | az devops login
         az artifacts universal publish --organization $AZURE_DEVOPS_ARTIFACTS_ORGANIZATION --project $AZURE_DEVOPS_ARTIFACTS_PROJECT --scope project --feed "PyTorch" --name $TORCH_WHEEL --description "PyTorch Official Build Artifact" --version $TORCH_VERSION-$LAST_COMMIT_DATE-$LAST_COMMIT --path .
       env:
-        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+        _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       continueOnError: true
       displayName: Upload PyTorch Official Build package to Azure Artifacts

@@ -142,9 +142,9 @@ jobs:
         git rev-parse --short HEAD > last_commit.txt && set /p LAST_COMMIT= < last_commit.txt
         git log -1 --pretty=%ad --date=format:%Y%m%d > last_commit_date.txt && set /p LAST_COMMIT_DATE= < last_commit_date.txt
         dir torch*win*.whl /b > whl.txt && set /p TORCH_WHEEL= < whl.txt
-        echo %ADOTOKEN% | az devops login
+        echo %_ADOTOKEN% | az devops login
         az artifacts universal publish --organization %AZURE_DEVOPS_ARTIFACTS_ORGANIZATION% --project %AZURE_DEVOPS_ARTIFACTS_PROJECT% --scope project --feed "PyTorch" --name %TORCH_WHEEL% --description "PyTorch Official Build Artifact" --version %TORCH_VERSION:~0,5%-%LAST_COMMIT_DATE%-%LAST_COMMIT% --path .
       env:
-        ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
+        _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       continueOnError: true
       displayName: Upload PyTorch nigthly package to Azure Artifacts

@@ -13,10 +13,10 @@ stages:
       pool: $(BUILD_POOL_LIN_1)
       customMatrixes:
         Nightly_Custom_Tests:
-          DOCKER_IMAGE: $(DOCKER_IMAGE_LIN_1)
-          PYTHON_VERSION: $(PYTHON_VERSION_LIN_1)
-          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_LIN_1)
-          RUN_TESTS: $(RUN_TESTS_LIN)
+          _DOCKER_IMAGE: $(DOCKER_IMAGE_LIN_1)
+          _PYTHON_VERSION: $(PYTHON_VERSION_LIN_1)
+          _CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_LIN_1)
+          _RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-unix.yml
     parameters:
@@ -24,10 +24,10 @@ stages:
       pool: $(BUILD_POOL_LIN_2)
       customMatrixes:
         Nightly_Custom_Tests:
-          DOCKER_IMAGE: $(DOCKER_IMAGE_LIN_2)
-          PYTHON_VERSION: $(PYTHON_VERSION_LIN_2)
-          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_LIN_2)
-          RUN_TESTS: $(RUN_TESTS_LIN)
+          _DOCKER_IMAGE: $(DOCKER_IMAGE_LIN_2)
+          _PYTHON_VERSION: $(PYTHON_VERSION_LIN_2)
+          _CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_LIN_2)
+          _RUN_TESTS: $(RUN_TESTS_LIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
@@ -35,9 +35,9 @@ stages:
       pool: $(BUILD_POOL_WIN_1)
       customMatrixes:
         Nightly_Custom_Tests:
-          PYTHON_VERSION: $(PYTHON_VERSION_WIN_1)
-          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_WIN_1)
-          RUN_TESTS: $(RUN_TESTS_WIN)
+          _PYTHON_VERSION: $(PYTHON_VERSION_WIN_1)
+          _CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_WIN_1)
+          _RUN_TESTS: $(RUN_TESTS_WIN)
 
   - template: job_templates/pytorch-template-win.yml
     parameters:
@@ -45,6 +45,6 @@ stages:
       pool: $(BUILD_POOL_WIN_2)
       customMatrixes:
         Nightly_Custom_Tests:
-          PYTHON_VERSION: $(PYTHON_VERSION_WIN_2)
-          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_WIN_2)
-          RUN_TESTS: $(RUN_TESTS_WIN)
+          _PYTHON_VERSION: $(PYTHON_VERSION_WIN_2)
+          _CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_WIN_2)
+          _RUN_TESTS: $(RUN_TESTS_WIN)

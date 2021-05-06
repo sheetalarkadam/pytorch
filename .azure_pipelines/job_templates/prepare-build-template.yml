@@ -17,8 +17,8 @@ steps:
 # Clean up env directory in conda for fresh builds and set up conda environment YAML
 - powershell: |
     Remove-Item 'C:\Miniconda\envs' -Recurse -ErrorAction Ignore
-    $env:PYTHON_VERSION = $env:SYSTEM_JOBNAME.Substring(3,1) + '.' + $env:SYSTEM_JOBNAME.Substring(4,1)
-    (Get-Content .azure_pipelines\job_templates\common-packages.yml) -replace 'PYTHON_VERSION', $env:PYTHON_VERSION | Out-File -encoding ASCII .azure_pipelines\job_templates\common-packages.yml
+    $env:_PYTHON_VERSION = $env:SYSTEM_JOBNAME.Substring(3,1) + '.' + $env:SYSTEM_JOBNAME.Substring(4,1)
+    (Get-Content .azure_pipelines\job_templates\common-packages.yml) -replace '_PYTHON_VERSION', $env:_PYTHON_VERSION | Out-File -encoding ASCII .azure_pipelines\job_templates\common-packages.yml
   displayName: Clean up previous environments and Set up conda environment YAML
 
 # Make conda environment and install required packages
