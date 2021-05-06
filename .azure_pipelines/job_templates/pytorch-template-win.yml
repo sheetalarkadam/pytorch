@@ -19,6 +19,10 @@ jobs:
     name: ${{ parameters.pool}}
 
   steps:
+  # Don't checkout repo contents to save time and CPU compute. Environment variables
+  # related to checkout branch such as $(BUILD_SOURCEBRANCH) are still available.
+  - checkout: none
+
   # Delete pytorch_tests repo from previous builds if exists
   - script: if exist "pytorch_tests/" rmdir "pytorch_tests/" /q /s
     displayName: Delete pytorch_tests repo from previous builds if exists
@@ -28,7 +32,7 @@ jobs:
       $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:ADOTOKEN"))
       git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_pytorch_tests_REPO_URL
       cd pytorch_tests
-      git checkout mubal/exp_use_scripts
+      git checkout mubal/exp_exp
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo

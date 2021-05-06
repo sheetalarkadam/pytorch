@@ -21,11 +21,12 @@ jobs:
     name: ${{ parameters.pool}}
   variables:
     DECODE_PERCENTS: false
-  container:
-    image: $[variables['container_image']]
-    endpoint: ${{parameters.container_endpoint}}
 
   steps:
+  # Don't checkout repo contents to save time and CPU compute. Environment variables
+  # related to checkout branch such as $(BUILD_SOURCEBRANCH) are still available.
+  - checkout: none
+
   # Delete pytorch_tests repo from previous builds if exists
   - bash: rm -rf pytorch_tests/
     displayName: Delete pytorch_tests repo from previous builds if exists
@@ -35,7 +36,7 @@ jobs:
       B64_PAT=$(printf "%s"":$ADOTOKEN" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $(AZURE_DEVOPS_PYTORCH_TESTS_REPO_URL)
       cd pytorch_tests
-      git checkout mubal/exp_use_scripts
+      git checkout mubal/exp_exp
     env:
       ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
