@@ -1,19 +1,17 @@
 # PyTorch PR PyTorch Tests Builds Pipeline on Azure DevOps
 #
-# This pipeline runs custom PyTorch unit-tests on PyTorch 
-# wheels generated during PR builds.
+# This pipeline:
+#   1) ensures that CircleCI builds for a given PR
+#      have finished, and that its artifacts are
+#      ready for download
+#   2) runs custom PyTorch unit-tests on PyTorch 
+#      wheels generated during PR builds.
 
 stages:
 - stage: 'EnsureArtifactsReady'
-  displayName: 'Ensure PyTorch PR Linux GPU Artifacts are ready'
+  displayName: 'Ensure PyTorch PR Artifacts are ready'
   jobs:
-  - template: job_templates/check-artifact-status-template.yml
-    parameters:
-      name: Verify
-      pool: $(BUILD_POOL_VMSS_BURSTABLE)
-      customMatrixes:
-        Ubuntu:
-          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
+  - template: job_templates/wheel-wait-template.yml
 
 - stage: 'PRCustomTests'
   displayName: 'Run custom unit tests on PyTorch wheels'
@@ -21,13 +19,13 @@ stages:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
-      pool: $(BUILD_POOL_PR)
-      container_endpoint: pytorchms.azurecr.io
+      pool: $(BUILD_POOL_VMSS_BURSTABLE_GPU)
       customMatrixes:
         PR_Custom_Tests:
-          container_image: $(CONTAINER_IMAGE_PR)
           PYTHON_VERSION: $(PYTHON_VERSION_PR)
-          CUDA_VERSION: $(CUDA_VERSION_PR)
+          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_PR)
           TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
+          TARGET_BRANCH_TO_CHECK: $(TARGET_BRANCH_TO_CHECK_PR)
+          DOCKER_IMAGE: $(DOCKER_IMAGE_PR)
           RUN_TESTS: $(RUN_TESTS_PR)
  
