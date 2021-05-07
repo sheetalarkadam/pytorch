@@ -3,7 +3,6 @@
 # This build depends on 2 parameters set as an environment variables in the pipeline:
 #   - AZURE_DEVOPS_CLI_PAT: Secret var for authenticating to Azure DevOps
 #   - AZURE_STORAGE_KEY: Secret var for authenticating to Azure Storage
-#   - _TS_CLONE_P, _TS_P, _TS_SM_P: Secret vars for specific unit tests
 
 parameters:
   name: ''
@@ -42,7 +41,7 @@ jobs:
   - script: call $(Build.SourcesDirectory)\pytorch_tests\scripts\windows\run.bat
     env:
       _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
-      _AZURE_S_K: $(AZURE_STORAGE_KEY)
+      _AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
       _TS_CLONE_P: $(TS_CLONE_PASSWORD)
       _TS_P: $(TS_PAT)
       _TS_SM_P: $(TS_SM_PAT)
