@@ -19,13 +19,13 @@ stages:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
-      pool: $(BUILD_POOL_VMSS_BURSTABLE_GPU)
+      pool: $(BUILD_POOL_PR)
       customMatrixes:
         PR_Custom_Tests:
-          PYTHON_VERSION: $(PYTHON_VERSION_PR)
-          CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_PR)
-          TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
-          TARGET_BRANCH_TO_CHECK: $(TARGET_BRANCH_TO_CHECK_PR)
-          DOCKER_IMAGE: $(DOCKER_IMAGE_PR)
-          RUN_TESTS: $(RUN_TESTS_PR)
+          _PYTHON_VERSION: $(PYTHON_VERSION_PR)
+          _CUDA_BUILD_VERSION: $(CUDA_BUILD_VERSION_PR)
+          _TARGET_CIRCLECI_BUILD: $(TARGET_CIRCLECI_PR)
+          _TARGET_BRANCH_TO_CHECK: $(TARGET_BRANCH_TO_CHECK_PR)
+          _DOCKER_IMAGE: $(DOCKER_IMAGE_PR)
+          _RUN_TESTS: $(RUN_TESTS_PR)
  
