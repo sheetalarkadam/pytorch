@@ -19,7 +19,7 @@ stages:
   - template: job_templates/pytorch-template-unix.yml
     parameters:
       name: ubuntu_1804_GPU_docker
-      pool: $(BUILD_POOL_VMSS_BURSTABLE_GPU)
+      pool: $(BUILD_POOL_PR)
       customMatrixes:
         PR_Custom_Tests:
           _PYTHON_VERSION: $(PYTHON_VERSION_PR)

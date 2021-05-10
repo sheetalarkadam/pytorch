@@ -32,7 +32,7 @@ jobs:
       $env:B64Pat = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$env:_ADOTOKEN"))
       git -c http.extraHeader="Authorization: Basic $env:B64Pat" clone $env:AZURE_DEVOPS_pytorch_tests_REPO_URL
       cd pytorch_tests
-      git checkout mubal/exp_use_scripts
+      git checkout $(PYTORCH_TESTS_CHECKOUT_BRANCH)
     env:
       _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
@@ -41,7 +41,7 @@ jobs:
   - script: call $(Build.SourcesDirectory)\pytorch_tests\scripts\windows\run.bat
     env:
       _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
-      _AZURE_S_K: $(AZURE_STORAGE_KEY)
+      _AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
       _TS_CLONE_P: $(TS_CLONE_PASSWORD)
       _TS_P: $(TS_PAT)
       _TS_SM_P: $(TS_SM_PAT)
