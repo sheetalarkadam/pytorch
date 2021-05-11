@@ -44,7 +44,6 @@ jobs:
   # Run PyTorch Unit Tests
   - bash: bash $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/run.sh
     env:
-      _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
       _AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
       _TS_CLONE_P: $(TS_CLONE_PASSWORD)
       _TS_P: $(TS_PAT)
