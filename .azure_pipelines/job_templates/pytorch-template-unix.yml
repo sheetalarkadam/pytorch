@@ -36,7 +36,7 @@ jobs:
       B64_PAT=$(printf "%s"":$_ADOTOKEN" | base64)
       git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone $(AZURE_DEVOPS_PYTORCH_TESTS_REPO_URL)
       cd pytorch_tests
-      git checkout $(PYTORCH_TESTS_CHECKOUT_BRANCH)
+      git checkout mubal/get-pytest-xmls
     env:
       _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
