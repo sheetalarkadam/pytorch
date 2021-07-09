@@ -56,5 +56,5 @@ stages:
   jobs:
   - template: job_templates/notify-webapp-template.yml
     parameters:
-      name: ubuntu_1804_GPU_docker
+      name: ubuntu_1804_CPU_docker
       pool: $(BUILD_POOL_LIN_1)
