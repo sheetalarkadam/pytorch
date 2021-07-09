@@ -8,7 +8,7 @@ jobs:
   pool:
     name: ${{ parameters.pool}}
   container:
-    image: ${{ paremeters.container_image }}
+    image: ${{ parameters.container_image }}
     endpoint: ${{ parameters.container_endpoint }}
   steps:
   # Clone PyTorch Tests repository
