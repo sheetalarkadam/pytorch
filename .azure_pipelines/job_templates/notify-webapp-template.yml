@@ -18,6 +18,6 @@ jobs:
       _ADOTOKEN: $(AZURE_DEVOPS_CLI_PAT)
     displayName: Clone PyTorch Tests repo
   - bash: |
-      pip install requests
-      python $(Build.SourcesDirectory)/pytorch_tests/scripts/linux/notify-webapp.py
+      pip install -r $(Build.SourcesDirectory)/pytorch_tests/scripts/webapp/requirements.txt
+      python $(Build.SourcesDirectory)/pytorch_tests/scripts/webapp/notify-webapp.py
     displayName: Notify Webapp
