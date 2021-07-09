@@ -7,9 +7,9 @@ jobs:
   timeoutInMinutes: 600
   pool:
     name: ${{ parameters.pool}}
-  container:
-    image: ${{ parameters.container_image }}
-    endpoint: ${{ parameters.container_endpoint }}
+  # container:
+  #   image: ${{ parameters.container_image }}
+  #   endpoint: ${{ parameters.container_endpoint }}
   steps:
   # Clone PyTorch Tests repository
   - bash: |
