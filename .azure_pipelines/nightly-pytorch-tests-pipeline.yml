@@ -59,4 +59,4 @@ stages:
       name: ubuntu_1804_CPU_docker
       pool: $(BUILD_POOL_LIN_1)
       endpoint: pytorchms.azurecr.io
-      image: pytorchms.azurecr.io/ubuntu_1804_py_38_cpu_dev
+      image: pytorchms.azurecr.io/ubuntu_1804_cpu_dev
