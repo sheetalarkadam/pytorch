@@ -12,6 +12,7 @@ jobs:
   pool:
     name: ${{ parameters.pool}}
   steps:
+  - checkout: none
   # Clone PyTorch Tests repository
   - bash: |
       B64_PAT=$(echo -n ":$_ADOTOKEN" | base64)
