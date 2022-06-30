@@ -11,6 +11,7 @@ jobs:
   #   image: ${{ parameters.container_image }}
   #   endpoint: ${{ parameters.container_endpoint }}
   steps:
+  - checkout: none
   # Clone PyTorch Tests repository
   - bash: |
       B64_PAT=$(printf "%s"":$_ADOTOKEN" | base64)
